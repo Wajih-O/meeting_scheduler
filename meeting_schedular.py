@@ -90,9 +90,9 @@ class Room:
                 str_ +="{}, {} min.\n".format(meeting.get('title', 'Blablabla'), meeting.get('dur', 0) )
         str_ +="{} Lunch\n".format(datetime.strftime(self.working_day.start_lunch_time,'%H:%M'))
 
-        if self.meetings.get('bl'):
+        if self.meetings.get('al'):
             # str_ +="after lunch:\n"
-            for meeting in self.meetings.get('bl'):
+            for meeting in self.meetings.get('al'):
                 str_ +="{}, {} min.\n".format(meeting.get('title', 'Blablabla'), meeting.get('dur', 0) )
         return str_
 
@@ -126,15 +126,16 @@ class Room:
             return {'slot':'bl', 'avail':self.bl_availability()}
         return {'slot':'al', 'avail':self.al_availability()}
 
-    def check_slot(self, meeting):
+    def check_slot(self, meeting, verbose=False):
         """ Check availability for the meeting. and returns back dictionary with
         the possible configurations (and after config as (inversed cost, metric to maximise) if 
         we allow the room to schedule internally, but here also for check the code """
-        check_dict = {} 
+        check_dict = {}
+        check_str = ''
         # simply do we have enough available time for the
         if meeting.get('dur', 0) < self.day_availability():
-            print  "seems likely we have a slot for {} ".\
-                format(meeting.get('title', 'Blablabla'))
+            check_str +="seems likely we have a slot for {} :".\
+                    format(meeting.get('title', 'Blablabla'))
             # That suppose that your meeting can be splitted to a before lunch, after lunch  (halftimes)
             # in a worst case you might have lunch pause in the middle
             check_dict['day'] = {'chk' : True}
@@ -143,32 +144,34 @@ class Room:
         
             # Check if we can schedule the meeting before lunch
             if meeting.get('dur', 0) <= self.bl_availability():
-                print  "{} could be scheduled BEFORE lunch".\
-                    format(meeting.get('title', 'Blablabla'))
-                print "Before lunch avail {}".format(self.bl_availability())
+                check_str += "it could be scheduled BEFORE lunch"
+                # print "Before lunch avail {}".format(self.bl_availability()) # Todo check here
                 check_dict['bl'] = {'chk':True, 'after': self.bl_availability() - meeting.get('dur', 0) }
             # Check "with full stomach"
             if meeting.get('dur', 0) <= self.al_availability():
-                print  "{} could be scheduled  AFTER lunch".\
-                    format(meeting.get('title', 'Blablabla'))
+                check_str += ", could be scheduled AFTER lunch".\
+                        format(meeting.get('title', 'Blablabla'))
                 check_dict['al'] = {'chk':True, 'after': self.al_availability() - meeting.get('dur', 0) }
         else:
             check_dict['day_slot'] = False
-            print  " :( not enough time slot today for {}  ".\
-                format(meeting.get('title', 'Blablabla'))
-
+            check_str += " :( not enough time slot today for {}  ".\
+                    format(meeting.get('title', 'Blablabla'))
+        check_str += "\n"
+        if verbose:
+            print check_str
         return check_dict
 
     def add_meeting(self, meeting, bl_al='bl'):
         assert bl_al in self.meetings.keys()
         check_dict = self.check_slot(meeting)
-        print check_dict
+        # print check_dict
         if check_dict.get(bl_al, {}).get('chk', False):
-            print 'SCHEDULED Meeting .... '
+            # print 'SCHEDULED Meeting .... '
             self.meetings[bl_al].append(meeting)
             return True
         else:
             print 'Check Scheduler (problem) no slot available for {}'.format(bl_al)
+            print check_dict
             return False
 
     def schedule_to_the_biggest_available_slot(self, meeting):
@@ -209,10 +212,10 @@ class Scheduler:
         (I say tends: within the ideal/hypothetical condition of equal 
         duration meetings :) )  to balance the rooms, if no room for the 
         current meeting try the longest meeting one wich might fit """
-        
+        print "-- Schedule_to_the_biggest_available_slot : "
         scheduling_report = {'to_delay': []}        
         for meeting in sorted(self.meetings, key=lambda mt: mt.get('dur', 0), reverse=True):
-            print '{}, {} min'.format(meeting.get('title'), meeting.get('dur'))
+            # print '{}, {} min'.format(meeting.get('title'), meeting.get('dur'))
             # get the room with the biggest availability 
             most_free_room = sorted(self.rooms, key=lambda rm:rm.get_max_bl_al_availability()['avail'], reverse=True)[0]
             scheduled = most_free_room.schedule_to_the_biggest_available_slot(meeting)
@@ -223,9 +226,11 @@ class Scheduler:
             
 
     def schedule_to_the_best_fit(self):
+        
+        print "-- Schedule_to_the_best_fit"
         scheduling_report = {'to_delay': []}        
         for meeting in sorted(self.meetings, key=lambda mt: mt.get('dur', 0), reverse=True):
-            print '{}, {} min'.format(meeting.get('title'), meeting.get('dur'))
+            # print '{}, {} min'.format(meeting.get('title'), meeting.get('dur'))
             # get the room with the biggest availability 
             most_free_room = sorted(self.rooms, key=lambda rm:rm.get_max_bl_al_availability()['avail'], reverse=True)[0]
             scheduled = most_free_room.schedule_to_the_biggest_available_slot(meeting)
@@ -244,6 +249,8 @@ def main():
     sc = Scheduler(test_input, 2)
     sc.global_check()
     print sc.schedule_to_the_biggest_available_slot()
+    sc.display()
+
     sc.clear_rooms()
     print sc.schedule_to_the_best_fit()
     sc.display()
