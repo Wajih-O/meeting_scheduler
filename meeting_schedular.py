@@ -94,7 +94,7 @@ class Room:
                                              meeting.get('dur', 0))
                 date_ += timedelta(minutes=meeting.get('dur', 0))
         str_ +="{} Lunch\n".format(datetime.strftime(self.working_day.start_lunch_time,'%H:%M'))
-        date_ = self.working_day.start_lunch_time
+        date_ = self.working_day.end_lunch_time
         if self.meetings.get('al'):
             # str_ +="after lunch:\n"
             for meeting in self.meetings.get('al'):
