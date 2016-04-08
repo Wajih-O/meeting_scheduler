@@ -24,7 +24,7 @@ test_input = [{ 'title' : 'All Hands meeting', 'dur': 60},
               { 'title' : 'New marketing campaign presentation', 'dur':30}]
 
 from datetime import datetime
-# from datetime import timedelta
+from datetime import timedelta
 
 class WorkingDay:
     def __init__(self, date = datetime.now().date() , 
@@ -83,18 +83,27 @@ class Room:
         self.meetings  = { 'bl':[], 'al':[]}
 
     def __str__(self):
-        str_ = "Room {}:\n".format(self.id_)
+        date_ = self.working_day.start_core_hours
+        str_ = "\nRoom {}:\n".format(self.id_)
         if self.meetings.get('bl'):
             # str_ +="Before lunch:\n"
             for meeting in self.meetings.get('bl'):
-                str_ +="{}, {} min.\n".format(meeting.get('title', 'Blablabla'), meeting.get('dur', 0) )
+                str_ +="{} -> {}, {} min.\n".\
+                    format(datetime.strftime(date_,'%H:%M'),
+                                             meeting.get('title', 'Blablabla'),
+                                             meeting.get('dur', 0))
+                date_ += timedelta(minutes=meeting.get('dur', 0))
         str_ +="{} Lunch\n".format(datetime.strftime(self.working_day.start_lunch_time,'%H:%M'))
-
+        date_ = self.working_day.start_lunch_time
         if self.meetings.get('al'):
             # str_ +="after lunch:\n"
             for meeting in self.meetings.get('al'):
-                str_ +="{}, {} min.\n".format(meeting.get('title', 'Blablabla'), meeting.get('dur', 0) )
-        str_+= "{} min. available within the day:  {} min. before lunch and {} after lunch.\n".\
+                str_ +="{} -> {}, {} min.\n".\
+                    format(datetime.strftime(date_,'%H:%M'),
+                                             meeting.get('title', 'Blablabla'),
+                                             meeting.get('dur', 0))
+                date_ += timedelta(minutes=meeting.get('dur', 0))
+        str_+= "\n({} min. available within the day:  {} min. before lunch and {} after lunch)\n".\
                format(self.day_availability(), self.bl_availability(), self.al_availability())
         return str_
 
