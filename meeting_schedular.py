@@ -94,6 +94,8 @@ class Room:
             # str_ +="after lunch:\n"
             for meeting in self.meetings.get('al'):
                 str_ +="{}, {} min.\n".format(meeting.get('title', 'Blablabla'), meeting.get('dur', 0) )
+        str_+= "{} min. available within the day:  {} min. before lunch and {} after lunch.\n".\
+               format(self.day_availability(), self.bl_availability(), self.al_availability())
         return str_
 
     def agg_duration(self):
@@ -133,7 +135,7 @@ class Room:
         check_dict = {}
         check_str = ''
         # simply do we have enough available time for the
-        if meeting.get('dur', 0) < self.day_availability():
+        if meeting.get('dur', 0) <= self.day_availability():
             check_str +="seems likely we have a slot for {} :".\
                     format(meeting.get('title', 'Blablabla'))
             # That suppose that your meeting can be splitted to a before lunch, after lunch  (halftimes)
@@ -145,7 +147,7 @@ class Room:
             # Check if we can schedule the meeting before lunch
             if meeting.get('dur', 0) <= self.bl_availability():
                 check_str += "it could be scheduled BEFORE lunch"
-                # print "Before lunch avail {}".format(self.bl_availability()) # Todo check here
+                # print "Before lunch avail {}".format(self.bl_availability())
                 check_dict['bl'] = {'chk':True, 'after': self.bl_availability() - meeting.get('dur', 0) }
             # Check "with full stomach"
             if meeting.get('dur', 0) <= self.al_availability():
@@ -173,6 +175,12 @@ class Room:
             print 'Check Scheduler (problem) no slot available for {}'.format(bl_al)
             print check_dict
             return False
+
+    def collect_garbage(self):
+        """ Try to re-arrange to collect small slots for bigger contigious space
+        before or after lunch. """
+        pass
+        
 
     def schedule_to_the_biggest_available_slot(self, meeting):
         bl_al = self.get_max_bl_al_availability()['slot']
