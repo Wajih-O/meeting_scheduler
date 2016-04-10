@@ -231,7 +231,7 @@ class Scheduler:
         current meeting try the longest meeting one wich might fit """
         print "-- Schedule_to_the_biggest_available_slot : "
         scheduling_report = {'to_delay': []}        
-        for meeting in sorted(self.meetings, key=lambda mt: mt.get('dur', 0), reverse=True):
+        for meeting in self.meetings: # sorted(self.meetings, key=lambda mt: mt.get('dur', 0), reverse=True):
             # print '{}, {} min'.format(meeting.get('title'), meeting.get('dur'))
             # get the room with the biggest availability 
             most_free_room = sorted(self.rooms, key=lambda rm:rm.get_max_bl_al_availability()['avail'], reverse=True)[0]
@@ -246,7 +246,7 @@ class Scheduler:
         
         print "-- Schedule_to_the_best_fit"
         scheduling_report = {'to_delay': []}        
-        for meeting in sorted(self.meetings, key=lambda mt: mt.get('dur', 0), reverse=True):
+        for meeting in self.meetings: # sorted(self.meetings, key=lambda mt: mt.get('dur', 0), reverse=True):
             # print '{}, {} min'.format(meeting.get('title'), meeting.get('dur'))
             # get the room with the biggest availability 
             most_free_room = sorted(self.rooms, key=lambda rm:rm.get_max_bl_al_availability()['avail'], reverse=True)[0]
